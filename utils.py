@@ -3,6 +3,18 @@ import numpy as np
 
 
 def get_contours_from_image(image, threshold=None, show=False, minArea=1000, filt=0, draw=False):
+    """
+    Returns data about contours in an image using Canny detection
+    :param image: input image
+    :param threshold: threshold for detection
+    :param show: display an image of the contours, boolean
+    :param minArea: minimum area of objects
+    :param filt: number of vertices for contours, int
+    :param draw: draw contours onto original image
+    :return: input image (after optional modifications),
+             array containing
+                (vertices, area, approximated contour shape, bounding rectangle, contour as vector of points)
+    """
     if threshold is None:
         threshold = [100, 100]
     image_grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
