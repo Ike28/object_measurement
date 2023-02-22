@@ -40,7 +40,7 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
             bounding = cv2.boundingRect(approx)
             if filt > 0:
                 if len(approx) == filt:
-                    contours_res.append(len(approx), area, approx, bounding, c)
+                    contours_res.append((len(approx), area, approx, bounding, c))
             else:
                 contours_res.append((len(approx), area, approx, bounding, c))
 
@@ -50,3 +50,42 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
             cv2.drawContours(image, c[4], -1, (0, 0, 255), 10)
 
     return image, contours_res
+
+
+def re_order_points(points):
+    """
+    Reorders points of a 4-vertex rectangle to form convex rectangle
+    :param points: input points
+    :return: reordered points
+    """
+    points_new = np.zeros_like(points)
+    points = points.reshape((4, 2))
+    add = points.sum(1)
+    points_new[0] = points[np.argmin(add)]
+    points_new[3] = points[np.argmax(add)]
+
+    diff = np.diff(points, axis=1)
+    points_new[1] = points[np.argmin(diff)]
+    points_new[2] = points[np.argmax(diff)]
+
+    return points_new
+
+
+def un_warp_image(image, points, width, height, padding=5):
+    """
+    Un-warps an object from an image to top-down perspective
+    :param image: input image
+    :param points: object points
+    :param width: width of the object
+    :param height: height of the object
+    :param padding: size of object edge padding in pixels (to reduce irregularities)
+    :return:
+    """
+    points = re_order_points(points)
+    points_warped = np.float32(points)
+    points_new = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    matrix = cv2.getPerspectiveTransform(points_warped, points_new)
+    image_un_warped = cv2.warpPerspective(image, matrix, (width, height))
+    image_un_warped = image_un_warped[padding:image_un_warped.shape[0] - padding, padding:image_un_warped.shape[1] - padding]
+
+    return image_un_warped
