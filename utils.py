@@ -22,8 +22,8 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
     canny_detection = cv2.Canny(image_blur, threshold[0], threshold[1])
 
     kernel = np.ones((5, 5))
-    image_dilated = cv2.dilate(canny_detection, kernel, iterations=3)
-    image_threshold = cv2.erode(image_dilated, kernel, iterations=2)
+    image_dilated = cv2.dilate(canny_detection, kernel, iterations=1)
+    image_threshold = cv2.erode(image_dilated, kernel, iterations=1)
 
     if show:
         #image_show = cv2.resize(image_threshold, (0, 0), None, 0.5, 0.5)
@@ -36,7 +36,7 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
         area = cv2.contourArea(c)
         if area > minArea:
             perimeter = cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, 0.02*perimeter, True)
+            approx = cv2.approxPolyDP(c, 0.09*perimeter, True)
             bounding = cv2.boundingRect(approx)
             if filt > 0:
                 if len(approx) == filt:
@@ -89,3 +89,7 @@ def un_warp_image(image, points, width, height, padding=10):
     image_un_warped = image_un_warped[padding:image_un_warped.shape[0] - padding, padding:image_un_warped.shape[1] - padding]
 
     return image_un_warped
+
+
+def find_distance(points1, points2):
+    return ((points2[0] - points1[0])**2 + (points2[1] - points1[1])**2)**0.5
