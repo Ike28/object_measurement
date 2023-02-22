@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def get_contours_from_image(image, threshold=None, show=False):
+def get_contours_from_image(image, threshold=None, show=False, minArea=1000, filt=0, draw=False):
     if threshold is None:
         threshold = [100, 100]
     image_grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -16,3 +16,25 @@ def get_contours_from_image(image, threshold=None, show=False):
     if show:
         image_show = cv2.resize(image_threshold, (0, 0), None, 0.5, 0.5)
         cv2.imshow('Canny', image_show)
+
+    contours, hierarchy = cv2.findContours(image_threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    contours_res = []
+    for c in contours:
+        area = cv2.contourArea(c)
+        if area > minArea:
+            perimeter = cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, 0.02*perimeter, True)
+            bounding = cv2.boundingRect(approx)
+            if filt > 0:
+                if len(approx) == filt:
+                    contours_res.append(len(approx), area, approx, bounding, c)
+            else:
+                contours_res.append((len(approx), area, approx, bounding, c))
+
+    contours_res = sorted(contours_res, key=lambda x: x[1], reverse=True)
+    if draw:
+        for c in contours_res:
+            cv2.drawContours(image, c[4], -1, (0, 0, 255), 10)
+
+    return image, contours_res
