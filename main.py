@@ -26,7 +26,13 @@ while True:
     if len(contours) > 0:
         max_contour = contours[0][2]
         image_un_warped = utils.un_warp_image(img, max_contour, width_a4, height_a4)
-        cv2.imshow('A4 paper', image_un_warped)
+        contours_image, object_contours = utils\
+            .get_contours_from_image(image_un_warped, minArea=2000, filt=4, threshold=[50, 50])
+        cv2.imshow('A4', contours_image)
+
+        if len(contours) > 0:
+            for obj in object_contours:
+                cv2.polylines(contours_image, [obj[2]], True, (0, 255, 0), 2)
 
     img = cv2.resize(img, (0, 0), None, 0.5, 0.5)
     cv2.imshow('Original', img)

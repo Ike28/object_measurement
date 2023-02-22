@@ -12,8 +12,8 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
     :param filt: number of vertices for contours, int
     :param draw: draw contours onto original image
     :return: input image (after optional modifications),
-             array containing
-                (vertices, area, approximated contour shape, bounding rectangle, contour as vector of points)
+             list containing elements of structure:
+                [vertices, area, approximated contour shape, bounding rectangle, contour as vector of points]
     """
     if threshold is None:
         threshold = [100, 100]
@@ -26,8 +26,8 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
     image_threshold = cv2.erode(image_dilated, kernel, iterations=2)
 
     if show:
-        image_show = cv2.resize(image_threshold, (0, 0), None, 0.5, 0.5)
-        cv2.imshow('Canny', image_show)
+        #image_show = cv2.resize(image_threshold, (0, 0), None, 0.5, 0.5)
+        cv2.imshow('Canny', image_threshold)
 
     contours, hierarchy = cv2.findContours(image_threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -40,14 +40,14 @@ def get_contours_from_image(image, threshold=None, show=False, minArea=1000, fil
             bounding = cv2.boundingRect(approx)
             if filt > 0:
                 if len(approx) == filt:
-                    contours_res.append((len(approx), area, approx, bounding, c))
+                    contours_res.append([len(approx), area, approx, bounding, c])
             else:
-                contours_res.append((len(approx), area, approx, bounding, c))
+                contours_res.append([len(approx), area, approx, bounding, c])
 
     contours_res = sorted(contours_res, key=lambda x: x[1], reverse=True)
     if draw:
         for c in contours_res:
-            cv2.drawContours(image, c[4], -1, (0, 0, 255), 10)
+            cv2.drawContours(image, c[4], -1, (0, 0, 255), 3)
 
     return image, contours_res
 
@@ -71,7 +71,7 @@ def re_order_points(points):
     return points_new
 
 
-def un_warp_image(image, points, width, height, padding=5):
+def un_warp_image(image, points, width, height, padding=10):
     """
     Un-warps an object from an image to top-down perspective
     :param image: input image
